@@ -254,16 +254,28 @@ function HeuristicsContent({ analysis, onRegionClick }: { analysis: AnalysisResu
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {heuristics.heuristics.map((h) => (
+          {heuristics.heuristics.map((h, index) => (
             <div key={h.id} className="p-3 rounded border bg-background">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">{h.name}</span>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs bg-secondary px-2 py-0.5 rounded font-mono">
+                  {index + 1}
+                </span>
+                <span className="text-sm font-medium flex-1">{h.name}</span>
                 <span className={`text-sm font-bold ${getScoreColor(h.score)}`}>
                   {h.score}
                 </span>
               </div>
+              {/* 진행 바 */}
+              <div className="w-full h-1.5 bg-muted rounded-full mb-2 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${
+                    h.score >= 80 ? 'bg-green-500' : h.score >= 60 ? 'bg-yellow-500' : h.score >= 40 ? 'bg-orange-500' : 'bg-red-500'
+                  }`}
+                  style={{ width: `${h.score}%` }}
+                />
+              </div>
               {h.findings.length > 0 && (
-                <div className="space-y-1">
+                <div className="space-y-1 mt-2">
                   {h.findings.map((f, idx) => (
                     <p
                       key={idx}
@@ -542,23 +554,55 @@ function ColorContent({ analysis }: { analysis: AnalysisResult }) {
       <CardContent className="space-y-4">
         {color.palette.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium mb-2">색상 팔레트</h4>
-            <div className="flex flex-wrap gap-2">
+            <h4 className="text-sm font-medium mb-3">색상 팔레트</h4>
+            <div className="grid grid-cols-4 gap-2">
               {color.palette.map((c, idx) => (
-                <div key={idx} className="flex items-center gap-1">
+                <div key={idx} className="text-center">
                   <div
-                    className="w-6 h-6 rounded border"
+                    className="w-full h-12 rounded-lg border shadow-sm mb-1"
                     style={{ backgroundColor: c.hex }}
                   />
-                  <span className="text-xs text-muted">{c.hex}</span>
+                  <span className="text-xs font-mono text-muted">{c.hex}</span>
+                  {c.usage && (
+                    <p className="text-xs text-muted mt-0.5">{c.usage}</p>
+                  )}
                 </div>
               ))}
             </div>
           </div>
         )}
+
+        {/* 색상 조합 미리보기 */}
+        {color.palette.length >= 2 && (
+          <div>
+            <h4 className="text-sm font-medium mb-2">조합 미리보기</h4>
+            <div className="flex gap-2">
+              <div
+                className="flex-1 p-3 rounded-lg text-center text-sm font-medium"
+                style={{
+                  backgroundColor: color.palette[0]?.hex || '#fff',
+                  color: color.palette[1]?.hex || '#000',
+                }}
+              >
+                텍스트 미리보기
+              </div>
+              <div
+                className="flex-1 p-3 rounded-lg text-center text-sm font-medium"
+                style={{
+                  backgroundColor: color.palette[1]?.hex || '#000',
+                  color: color.palette[0]?.hex || '#fff',
+                }}
+              >
+                반전 미리보기
+              </div>
+            </div>
+          </div>
+        )}
+
         <div>
           <h4 className="text-sm font-medium mb-2">색상 조화</h4>
-          <p className="text-xs text-muted">{color.harmony.type}: {color.harmony.analysis}</p>
+          <Badge variant="outline" className="mb-2">{color.harmony.type}</Badge>
+          <p className="text-xs text-muted">{color.harmony.analysis}</p>
         </div>
         <div>
           <h4 className="text-sm font-medium mb-2">감정적 효과</h4>
