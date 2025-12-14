@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAnalysisStore, useAnnotationStore } from '@/store';
 import { AnalysisPanel, ImageCanvas } from '@/components/analysis';
+import { AnnotationToolbar } from '@/components/annotation';
 import { Button, Skeleton } from '@/components/ui';
 
 export default function AnalysisPage() {
@@ -18,7 +19,6 @@ export default function AnalysisPage() {
     analysisId,
     currentAnalysis,
     imageData,
-    imageMeta,
     activeCategory,
     setActiveCategory,
     highlightedRegions,
@@ -26,7 +26,7 @@ export default function AnalysisPage() {
     clearHighlights,
   } = useAnalysisStore();
 
-  const { showAiRegions, toggleAiRegions } = useAnnotationStore();
+  const { showAiRegions } = useAnnotationStore();
 
   // 분석 데이터 확인
   useEffect(() => {
@@ -79,25 +79,21 @@ export default function AnalysisPage() {
   return (
     <div className="container mx-auto px-4 py-6">
       {/* 헤더 */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-xl font-bold">UX/UI 분석 결과</h1>
           <p className="text-sm text-muted">
             {new Date().toLocaleString('ko-KR')}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant={showAiRegions ? 'secondary' : 'outline'}
-            size="sm"
-            onClick={toggleAiRegions}
-          >
-            {showAiRegions ? 'AI 영역 숨기기' : 'AI 영역 표시'}
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => router.push('/')}>
-            새로 분석
-          </Button>
-        </div>
+        <Button variant="outline" size="sm" onClick={() => router.push('/')}>
+          새로 분석
+        </Button>
+      </div>
+
+      {/* 어노테이션 툴바 */}
+      <div className="mb-4">
+        <AnnotationToolbar />
       </div>
 
       {/* 메인 콘텐츠 */}
