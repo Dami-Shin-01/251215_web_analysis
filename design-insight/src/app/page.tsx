@@ -34,12 +34,25 @@ export default function Home() {
         }),
       });
 
+      // 응답 텍스트 먼저 읽기
+      const responseText = await response.text();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || '분석 중 오류가 발생했습니다.');
+        // JSON 파싱 시도
+        try {
+          const errorData = JSON.parse(responseText);
+          throw new Error(errorData.error || '분석 중 오류가 발생했습니다.');
+        } catch (parseError) {
+          // JSON이 아닌 경우
+          if (response.status === 413 || responseText.toLowerCase().includes('too large')) {
+            throw new Error('이미지 크기가 너무 큽니다. 더 작은 이미지를 사용해주세요.');
+          }
+          throw new Error(`서버 오류가 발생했습니다. (${response.status})`);
+        }
       }
 
-      const data = await response.json();
+      // 성공 응답 JSON 파싱
+      const data = JSON.parse(responseText);
 
       // zustand store에 분석 결과 저장 (메모리에만 유지)
       setAnalysis(data.id, data.result, data.imageData, data.imageMeta);
