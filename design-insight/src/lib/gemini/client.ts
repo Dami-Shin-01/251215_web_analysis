@@ -22,9 +22,9 @@ export async function analyzeImage(
 ): Promise<AnalysisResult> {
   const genAI = getGenAI();
 
-  // Gemini 1.5 Flash 모델 사용 (빠르고 비용 효율적)
+  // Gemini 2.5 Flash 모델 사용 (빠르고 비용 효율적)
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.5-flash',
   });
 
   const prompt = buildAnalysisPrompt(options);

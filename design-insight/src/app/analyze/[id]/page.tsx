@@ -5,20 +5,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAnalysisStore, useAnnotationStore } from '@/store';
 import { AnalysisPanel, ImageCanvas } from '@/components/analysis';
 import { Button, Skeleton } from '@/components/ui';
-import { AnalysisResult } from '@/types';
-
-interface AnalysisData {
-  id: string;
-  result: AnalysisResult;
-  imageData: string;
-  imageMeta: {
-    width: number;
-    height: number;
-    format: string;
-    size: number;
-  };
-  createdAt: string;
-}
 
 export default function AnalysisPage() {
   const params = useParams();
@@ -27,9 +13,12 @@ export default function AnalysisPage() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
 
   const {
+    analysisId,
+    currentAnalysis,
+    imageData,
+    imageMeta,
     activeCategory,
     setActiveCategory,
     highlightedRegions,
@@ -39,31 +28,19 @@ export default function AnalysisPage() {
 
   const { showAiRegions, toggleAiRegions } = useAnnotationStore();
 
-  // 분석 데이터 로드
+  // 분석 데이터 확인
   useEffect(() => {
-    // 로컬 스토리지에서 임시 데이터 불러오기 (KV 연동 전)
-    const loadAnalysis = async () => {
-      setIsLoading(true);
-      try {
-        // 세션 스토리지에서 최근 분석 데이터 확인
-        const storedData = sessionStorage.getItem(`analysis_${id}`);
-        if (storedData) {
-          setAnalysisData(JSON.parse(storedData));
-        } else {
-          // TODO: API에서 데이터 로드 (Phase 6)
-          setError('분석 데이터를 찾을 수 없습니다.');
-        }
-      } catch (err) {
-        setError('데이터를 불러오는 중 오류가 발생했습니다.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    setIsLoading(true);
 
-    if (id) {
-      loadAnalysis();
+    // zustand store에서 데이터 확인
+    if (analysisId === id && currentAnalysis && imageData) {
+      setIsLoading(false);
+    } else {
+      // 데이터가 없으면 에러 (새로고침 시 발생)
+      setError('분석 데이터를 찾을 수 없습니다. 새로 분석해주세요.');
+      setIsLoading(false);
     }
-  }, [id]);
+  }, [id, analysisId, currentAnalysis, imageData]);
 
   const handleRegionClick = (regionId: string) => {
     if (highlightedRegions.includes(regionId)) {
@@ -87,7 +64,7 @@ export default function AnalysisPage() {
     );
   }
 
-  if (error || !analysisData) {
+  if (error || !currentAnalysis || !imageData) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-20">
@@ -106,7 +83,7 @@ export default function AnalysisPage() {
         <div>
           <h1 className="text-xl font-bold">UX/UI 분석 결과</h1>
           <p className="text-sm text-muted">
-            {new Date(analysisData.createdAt).toLocaleString('ko-KR')}
+            {new Date().toLocaleString('ko-KR')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -128,8 +105,8 @@ export default function AnalysisPage() {
         {/* 이미지 캔버스 */}
         <div className="lg:sticky lg:top-20 lg:h-fit">
           <ImageCanvas
-            imageData={analysisData.imageData}
-            detectedRegions={analysisData.result.detectedRegions}
+            imageData={imageData}
+            detectedRegions={currentAnalysis.detectedRegions}
             highlightedRegions={highlightedRegions}
             showAiRegions={showAiRegions}
             onRegionClick={handleRegionClick}
@@ -139,7 +116,7 @@ export default function AnalysisPage() {
         {/* 분석 패널 */}
         <div className="overflow-y-auto">
           <AnalysisPanel
-            analysis={analysisData.result}
+            analysis={currentAnalysis}
             activeCategory={activeCategory}
             onCategoryChange={setActiveCategory}
             onRegionClick={handleRegionClick}

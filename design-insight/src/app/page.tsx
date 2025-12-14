@@ -4,12 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DropZone, ImagePreview } from '@/components/upload';
 import { useImageUpload } from '@/hooks';
+import { useAnalysisStore } from '@/store';
 
 export default function Home() {
   const router = useRouter();
   const { file, selectFile, removeFile, getBase64 } = useImageUpload();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { setAnalysis } = useAnalysisStore();
 
   const handleAnalyze = async () => {
     if (!file) return;
@@ -39,8 +41,8 @@ export default function Home() {
 
       const data = await response.json();
 
-      // 세션 스토리지에 분석 결과 저장 (임시, KV 연동 전)
-      sessionStorage.setItem(`analysis_${data.id}`, JSON.stringify(data));
+      // zustand store에 분석 결과 저장 (메모리에만 유지)
+      setAnalysis(data.id, data.result, data.imageData, data.imageMeta);
 
       // 분석 결과 페이지로 이동
       router.push(`/analyze/${data.id}`);
