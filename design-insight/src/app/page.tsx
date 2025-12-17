@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DropZone, ImagePreview } from '@/components/upload';
+import { ApiKeyInput } from '@/components/settings';
 import { useImageUpload } from '@/hooks';
-import { useAnalysisStore } from '@/store';
+import { useAnalysisStore, useApiKeyStore } from '@/store';
 
 export default function Home() {
   const router = useRouter();
@@ -12,9 +13,15 @@ export default function Home() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { setAnalysis } = useAnalysisStore();
+  const { apiKey } = useApiKeyStore();
 
   const handleAnalyze = async () => {
     if (!file) return;
+
+    if (!apiKey) {
+      setError('API 키를 먼저 입력해주세요.');
+      return;
+    }
 
     setIsAnalyzing(true);
     setError(null);
@@ -31,6 +38,7 @@ export default function Home() {
           image: base64,
           mimeType: file.type,
           fileName: file.name,
+          apiKey,
         }),
       });
 
@@ -76,6 +84,11 @@ export default function Home() {
           스크린샷을 업로드하면 AI가 사용자 여정, 휴리스틱 평가, 시각적 계층 구조 등
           다양한 UX/UI 관점에서 분석해드립니다.
         </p>
+      </div>
+
+      {/* API 키 입력 */}
+      <div className="mb-6">
+        <ApiKeyInput />
       </div>
 
       {/* 업로드 영역 */}

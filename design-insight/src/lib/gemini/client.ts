@@ -4,10 +4,9 @@ import { buildAnalysisPrompt } from './prompts';
 import { parseAnalysisResponse } from './parser';
 
 // Gemini API 클라이언트 초기화
-function getGenAI() {
-  const apiKey = process.env.GOOGLE_API_KEY;
+function getGenAI(apiKey: string) {
   if (!apiKey) {
-    throw new Error('GOOGLE_API_KEY 환경변수가 설정되지 않았습니다.');
+    throw new Error('API 키가 필요합니다.');
   }
   return new GoogleGenerativeAI(apiKey);
 }
@@ -15,12 +14,13 @@ function getGenAI() {
 export async function analyzeImage(
   base64Image: string,
   mimeType: string,
+  apiKey: string,
   options: AnalysisOptions = {
     categories: ['user-flow', 'heuristics', 'gestalt', 'cognitive', 'accessibility', 'ia', 'layout', 'typography', 'color', 'motion'],
     depth: 'standard',
   }
 ): Promise<AnalysisResult> {
-  const genAI = getGenAI();
+  const genAI = getGenAI(apiKey);
 
   // Gemini 2.5 Flash 모델 사용 (빠르고 비용 효율적)
   const model = genAI.getGenerativeModel({

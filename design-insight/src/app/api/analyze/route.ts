@@ -12,7 +12,15 @@ const MAX_IMAGE_SIZE = 10 * 1024 * 1024 * 1.37; // Base64 인코딩 오버헤드
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { image, mimeType, fileName } = body;
+    const { image, mimeType, fileName, apiKey } = body;
+
+    // API 키 검증
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: 'API 키가 필요합니다. 설정에서 Google API 키를 입력해주세요.' },
+        { status: 401 }
+      );
+    }
 
     // 입력 검증
     if (!image || !mimeType) {
@@ -56,7 +64,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Gemini API로 분석 실행
-    const analysisResult = await analyzeImage(image, mimeType, options);
+    const analysisResult = await analyzeImage(image, mimeType, apiKey, options);
 
     // 분석 ID 생성
     const analysisId = generateAnalysisId();
